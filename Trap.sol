@@ -13,14 +13,17 @@ contract Trap is ITrap {
 
     function collect() external view returns (bytes memory) {
         bool active = IMockResponse(RESPONSE_CONTRACT).isActive();
-        return abi.encode(active, discordName);
+        uint256 version = 1;
+        return abi.encode(version, active, discordName);
     }
 
     function shouldRespond(bytes[] calldata data) external pure returns (bool, bytes memory) {
-        // take the latest block data from collect
-        (bool active, string memory name) = abi.decode(data[0], (bool, string));
-        // will not run if the contract is not active or the discord name is not set
-        if (!active || bytes(name).length == 0) {
+        (uint256 version, bool active, string memory name) = abi.decode(
+            data[0],
+            (uint256, bool, string)
+        );
+
+        if (version != 1 || !active || bytes(name).length == 0) {
             return (false, bytes(""));
         }
 
